@@ -13,7 +13,10 @@ typedef struct {
 #define is_pressed(button) controller_get_digital(E_CONTROLLER_MASTER, button)
 
 int clamp360(int a) {
-	return (a + 360) % 360;
+	while (a > 360 || a < 0) {
+		a = (a + 360) % 360;
+	}
+	return a;
 }
 
 double Vector2Length(Vector2 v) {
