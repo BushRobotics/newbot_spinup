@@ -2,6 +2,7 @@
 #define UTILS
 #include "main.h"
 
+
 typedef struct {
 	double x;
 	double y;

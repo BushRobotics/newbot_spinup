@@ -27,7 +27,7 @@ typedef struct {
 
 Path load_path(char* filename) {
 	FILE* f = fopen(filename, "rb");
-	int steps = -1;
+	int steps = 0;
 
 	TempPathStep* temp_path = malloc(sizeof(TempPathStep));
 
@@ -37,28 +37,24 @@ Path load_path(char* filename) {
 	char buf[40];
 
 	while (fgets(buf, sizeof(buf), f) != NULL) {
-		steps++;
-		temp_path = realloc(temp_path, sizeof(TempPathStep) * (steps + 2));
 		if (sscanf(buf, "%lf %lf %d %d %d", &(temp_path[steps].pos.x), &(temp_path[steps].pos.y), &(temp_path[steps].speed), &(temp_path[steps].action), &(temp_path[steps].post_angle)) == 5) {
 			temp_path[steps].has_post_angle = true;
-			continue;
 		}
-		if (sscanf(buf, "%lf %lf %d %d %*s", &(temp_path[steps].pos.x), &(temp_path[steps].pos.y), &(temp_path[steps].speed), &(temp_path[steps].action)) == 4) {
+		else if (sscanf(buf, "%lf %lf %d %d %*s", &(temp_path[steps].pos.x), &(temp_path[steps].pos.y), &(temp_path[steps].speed), &(temp_path[steps].action)) == 4) {
 			temp_path[steps].has_post_angle = false;
-			continue;
 		}
-		if (sscanf(buf, "%d %d %d %d %d", &x_int, &y_int, &(temp_path[steps].speed), &(temp_path[steps].action), &(temp_path[steps].post_angle)) == 5) {
+		else if (sscanf(buf, "%d %d %d %d %d", &x_int, &y_int, &(temp_path[steps].speed), &(temp_path[steps].action), &(temp_path[steps].post_angle)) == 5) {
 			temp_path[steps].has_post_angle = true;
 			temp_path[steps].pos.x = (double)x_int;
 			temp_path[steps].pos.y = (double)y_int;
-			continue;
 		}
-		if (sscanf(buf, "%d %d %d %d %*s", &x_int, &y_int, &(temp_path[steps].speed), &(temp_path[steps].action)) == 4) {
+		else if (sscanf(buf, "%d %d %d %d %*s", &x_int, &y_int, &(temp_path[steps].speed), &(temp_path[steps].action)) == 4) {
 			temp_path[steps].has_post_angle = false;
 			temp_path[steps].pos.x = (double)x_int;
 			temp_path[steps].pos.y = (double)y_int;
-			continue;
 		}
+		steps++;
+		temp_path = realloc(temp_path, sizeof(TempPathStep) * (steps + 2));
 	}
 
 	Path path = {
@@ -71,11 +67,18 @@ Path load_path(char* filename) {
 		path.steps[i].distance = 0;
 
 		if (i != 0) {
+			path.steps[i].angle = path.steps[i - 1].angle;
 			path.steps[i].distance = Vector2Length(Vector2Subtract(temp_path[i - 1].pos, temp_path[i].pos));
 			if (path.steps[i].distance != 0) {
-				path.steps[i].angle = asin((temp_path[i - 1].pos.x - temp_path[i].pos.x) / path.steps[i].distance);
-				path.steps[i].angle = rad2deg(path.steps[i].angle);
+				double temp_angle = asin((temp_path[i - 1].pos.x - temp_path[i].pos.x) / path.steps[i].distance);
+				path.steps[i].angle = (int)rad2deg(temp_angle);
 			}
+
+			if (temp_path[i].pos.y - temp_path[i - 1].pos.y < 0) {
+				path.steps[i].angle *= -1;
+				path.steps[i].angle += 180;
+			}
+			path.steps[i].angle = clamp360(path.steps[i].angle);
 		}
 
 		path.steps[i].action = temp_path[i].action;
