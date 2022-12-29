@@ -71,7 +71,7 @@ Path load_path(char* filename) {
 			path.steps[i].distance = Vector2Length(Vector2Subtract(temp_path[i - 1].pos, temp_path[i].pos));
 			if (path.steps[i].distance != 0) {
 				double temp_angle = asin((temp_path[i - 1].pos.x - temp_path[i].pos.x) / path.steps[i].distance);
-				path.steps[i].angle = (int)rad2deg(temp_angle);
+				path.steps[i].angle = (int)rad2deg(-temp_angle);
 			}
 
 			if (temp_path[i].pos.y - temp_path[i - 1].pos.y < 0) {
