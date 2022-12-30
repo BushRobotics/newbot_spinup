@@ -20,6 +20,19 @@ int clamp360(int a) {
 	return a;
 }
 
+int direction_to(int c, int t) {
+	c = clamp360(c);
+	t = clamp360(t);
+	int a = c - t;
+
+	int s = a >= 0 ? 1 : -1;
+
+	if (abs(a) > 180)
+		return s;
+
+	return -s;
+}
+
 double Vector2Length(Vector2 v) {
 	return sqrt(v.x * v.x + v.y * v.y);
 }
