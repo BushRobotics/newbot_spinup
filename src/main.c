@@ -131,7 +131,44 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	int frames = 0;
+	Vector2 left_stick;
+	Vector2 right_stick;
+	int wheel_power[2];
+
+	int target_rotation = (int)imu_get_heading(IMU_PORT);
+
 	while (true) {
+		left_stick = (Vector2){controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_X), controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_Y)};
+		right_stick = (Vector2){controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_RIGHT_X), controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_RIGHT_Y)};
+
+		wheel_power[0] = left_stick.y;
+		wheel_power[1] = left_stick.y;
+
+		if (right_stick.x != 0) {
+			wheel_power[0] += right_stick.x * RIGHT_SENSITIVITY;
+			wheel_power[1] -= right_stick.x * RIGHT_SENSITIVITY;
+			target_rotation = (int)imu_get_heading(IMU_PORT);
+		}
+		else {
+			// really smart rotation correction (I hope)
+			int direction = direction_to(imu_get_heading(IMU_PORT), target_rotation) * (abs(left_stick.y) / 2);
+			wheel_power[0] += direction;
+			wheel_power[1] -= direction;
+		}
+
+		motor_move(LEFT_WHEEL, wheel_power[0]);
+		motor_move(RIGHT_WHEEL, wheel_power[1]);
+
+		if (frames == 250) {
+			// put peepee poopoo statements here
+			double avg_wheel_dist = (motor_get_position(LEFT_WHEEL) + motor_get_position(RIGHT_WHEEL)) / 2;
+			printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
+
+			frames = 0;
+		}
+
 		delay(2);
+		frames++;
 	}
 }
