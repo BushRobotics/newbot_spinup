@@ -11,6 +11,10 @@ double inch_ratio = 1.0 / 1.0; // inches traveled / motor rotations
 #define RIGHT_SENSITIVITY 0.65
 #define IMU_PORT 12
 
+void stop_all_motors() {
+	motor_move(LEFT_WHEEL, 0);
+	motor_move(RIGHT_WHEEL, 0);
+}
 
 int rotate_to(int rotation, int32_t speed) {
 	int time_taken = 0;
@@ -24,7 +28,7 @@ int rotate_to(int rotation, int32_t speed) {
 		motor_move_velocity(RIGHT_WHEEL, -speed);
 		delay(2); // delay until within 4 degrees of position
 		time_taken += 2;
-		current_rotation = (int)imu_get_rotation(IMU_PORT);
+		current_rotation = (int)imu_get_heading(IMU_PORT);
 	}
 	stop_all_motors();
 	printf("\r\n\r\n\tSpin done!\r\n\r\n");
