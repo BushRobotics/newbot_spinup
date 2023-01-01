@@ -23,6 +23,10 @@ int rotate_to(int rotation, int32_t speed) {
 
 	speed *= direction_to(start_rotation, rotation);
 
+	// convert inches/second to RPMs
+	speed *= inch_ratio;
+	speed *= 60;
+
 	while (!(current_rotation < rotation + 2 && current_rotation > rotation - 2)) {
 		motor_move_velocity(LEFT_WHEEL, speed);
 		motor_move_velocity(RIGHT_WHEEL, -speed);
@@ -43,6 +47,10 @@ int travel_distance(double distance, int32_t speed) {
 
 	double current_distance = 0;
 	bool not_there_yet = true;
+
+	// convert inches/second to RPMs
+	speed *= inch_ratio;
+	speed *= 60;
 
 	if (distance < 0)
 		speed *= -1;
