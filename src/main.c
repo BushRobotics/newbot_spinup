@@ -89,6 +89,10 @@ void initialize() {
 	motor_set_encoder_units(LEFT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
 	motor_set_encoder_units(RIGHT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
 
+	// red gears
+	motor_set_gearing(LEFT_WHEEL, E_MOTOR_GEAR_RED);
+	motor_set_gearing(RIGHT_WHEEL, E_MOTOR_GEAR_RED);
+
 	motor_set_brake_mode(LEFT_WHEEL, E_MOTOR_BRAKE_BRAKE);
 	motor_set_brake_mode(RIGHT_WHEEL, E_MOTOR_BRAKE_BRAKE);
 	motor_set_reversed(LEFT_WHEEL, true);
