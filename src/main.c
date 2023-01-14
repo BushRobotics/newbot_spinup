@@ -72,7 +72,7 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 
 			double direction = direction_to(current_rotation, target_rotation) * ((double)rot_distance / 180.0);
 
-			direction *= speed;
+			direction *= speed * 2;
 
 			wheel_power[0] += (int)direction;
 			wheel_power[1] -= (int)direction;
@@ -154,6 +154,29 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
+void play_auton_program(char* filename) {
+	Path path = load_path(filename);
+
+	for (int i = 0; i < path.length; i++) {
+		rotate_to(path.steps[i].angle);
+		travel_distance(path.steps[i].distance, path.steps[i].speed, path.steps[i].angle);
+		rotate_to(path.steps[i].post_angle);
+
+		switch (path.steps[i].action) {
+			case 0:
+				break;
+			case 1:
+				// TODO: roller
+				break;
+			case 2:
+				// TODO: shoot disk
+				break;
+		}
+
+	}
+}
+
 void autonomous() {
 	rotate_to(180);
 	travel_distance(15.0 * 12.0, 100, 180);
