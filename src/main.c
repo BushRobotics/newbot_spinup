@@ -3,69 +3,92 @@
 #include "utils.h"
 #include "parameters.h"
 
-double inch_ratio = 1.0 / 1.0; // inches traveled / motor rotations
+double inch_ratio = 39.0 / 3.05; // inches traveled / motor rotations
 
 #define LEFT_WHEEL 1
 #define RIGHT_WHEEL 2
 
 #define RIGHT_SENSITIVITY 0.65
-#define IMU_PORT 12
+#define IMU_PORT 3
 
 void stop_all_motors() {
 	motor_move(LEFT_WHEEL, 0);
 	motor_move(RIGHT_WHEEL, 0);
 }
 
-int rotate_to(int rotation, int32_t speed) {
+int rotate_to(int rotation) {
 	int time_taken = 0;
 	int start_rotation = (int)imu_get_heading(IMU_PORT);
 	int current_rotation = start_rotation;
+	int speed;
 
-	speed *= direction_to(start_rotation, rotation);
+	int direction = direction_to(start_rotation, rotation);
+	speed = distance_between(rotation, current_rotation);
 
-	// convert inches/second to RPMs
-	speed *= inch_ratio;
-	speed *= 60;
+	while (!(current_rotation < rotation + 1 && current_rotation > rotation - 1)) {
+		if (time_taken % 100 == 0)
+			printf("rotating at %d\r\n", speed);
 
-	while (!(current_rotation < rotation + 2 && current_rotation > rotation - 2)) {
-		motor_move_velocity(LEFT_WHEEL, speed);
-		motor_move_velocity(RIGHT_WHEEL, -speed);
-		delay(2); // delay until within 4 degrees of position
+		motor_move_velocity(LEFT_WHEEL, speed * direction);
+		motor_move_velocity(RIGHT_WHEEL, -speed * direction);
+		delay(2);
 		time_taken += 2;
 		current_rotation = (int)imu_get_heading(IMU_PORT);
+		speed = distance_between(rotation, current_rotation);
+
+		if (distance_between(rotation, current_rotation) < 10 || speed < 32)
+			speed = 32;
 	}
 	stop_all_motors();
-	printf("\r\n\r\n\tSpin done!\r\n\r\n");
+	printf("spin done!\r\n\r\n");
 	return time_taken;
 }
 
-int travel_distance(double distance, int32_t speed) {
+int travel_distance(double distance, int32_t speed, int target_rotation) {
 	int time_taken = 0;
 
 	double left_start = motor_get_position(LEFT_WHEEL);
 	double right_start = motor_get_position(RIGHT_WHEEL);
 
 	double current_distance = 0;
-	bool not_there_yet = true;
+
+	int wheel_power[2];
 
 	// convert inches/second to RPMs
-	speed *= inch_ratio;
 	speed *= 60;
+	speed /= inch_ratio;
 
-	if (distance < 0)
-		speed *= -1;
+	while (current_distance < distance) {
 
-	while (not_there_yet) {
-		motor_move_velocity(LEFT_WHEEL, speed);
-		motor_move_velocity(RIGHT_WHEEL, speed);
+		wheel_power[0] = speed;
+		wheel_power[1] = speed;
+
+		// really smart rotation correction (I hope)
+		double current_rotation = (int)imu_get_heading(IMU_PORT);
+		int rot_distance = distance_between(current_rotation, target_rotation);
+		if (rot_distance > 1) {
+			if (time_taken % 100 == 0)
+				printf("rotation error: %d\r\n", rot_distance);
+
+			double direction = direction_to(current_rotation, target_rotation) * ((double)rot_distance / 180.0);
+
+			direction *= speed;
+
+			wheel_power[0] += (int)direction;
+			wheel_power[1] -= (int)direction;
+		}
+
+		motor_move_velocity(LEFT_WHEEL, wheel_power[0]);
+		motor_move_velocity(RIGHT_WHEEL, wheel_power[1]);
 
 		current_distance = ((motor_get_position(LEFT_WHEEL) - left_start) + (motor_get_position(RIGHT_WHEEL) - right_start)) / 2; // average delta rotations
 		current_distance *= inch_ratio; // convert from rotations to inches
 
-		not_there_yet = distance > 0 ? current_distance < distance : current_distance > distance;
 		time_taken += 2;
 		delay(2);
 	}
+
+	stop_all_motors();
 
 	return time_taken;
 }
@@ -90,12 +113,12 @@ void initialize() {
 	motor_set_encoder_units(RIGHT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
 
 	// red gears
-	motor_set_gearing(LEFT_WHEEL, E_MOTOR_GEAR_RED);
-	motor_set_gearing(RIGHT_WHEEL, E_MOTOR_GEAR_RED);
+	motor_set_gearing(LEFT_WHEEL, E_MOTOR_GEAR_GREEN);
+	motor_set_gearing(RIGHT_WHEEL, E_MOTOR_GEAR_GREEN);
 
 	motor_set_brake_mode(LEFT_WHEEL, E_MOTOR_BRAKE_BRAKE);
 	motor_set_brake_mode(RIGHT_WHEEL, E_MOTOR_BRAKE_BRAKE);
-	motor_set_reversed(LEFT_WHEEL, true);
+	motor_set_reversed(RIGHT_WHEEL, true);
 
 	printf("calibrating inertial sensor...\r\n");
 	imu_reset_blocking(IMU_PORT);
@@ -131,7 +154,10 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+	rotate_to(180);
+	travel_distance(15.0 * 12.0, 100, 180);
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -165,12 +191,6 @@ void opcontrol() {
 			wheel_power[0] += right_stick.x * RIGHT_SENSITIVITY;
 			wheel_power[1] -= right_stick.x * RIGHT_SENSITIVITY;
 			target_rotation = (int)imu_get_heading(IMU_PORT);
-		}
-		else {
-			// really smart rotation correction (I hope)
-			int direction = direction_to(imu_get_heading(IMU_PORT), target_rotation) * (abs(left_stick.y) / 2);
-			wheel_power[0] += direction;
-			wheel_power[1] -= direction;
 		}
 
 		motor_move(LEFT_WHEEL, wheel_power[0]);

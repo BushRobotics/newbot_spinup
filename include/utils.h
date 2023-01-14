@@ -33,6 +33,11 @@ int direction_to(int c, int t) {
 	return -s;
 }
 
+int distance_between(int c, int t) {
+	int diff = ( t - c + 180 ) % 360 - 180;
+	return abs(diff < -180 ? diff + 360 : diff);
+}
+
 double Vector2Length(Vector2 v) {
 	return sqrt(v.x * v.x + v.y * v.y);
 }
