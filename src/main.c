@@ -36,8 +36,8 @@ int rotate_to(int rotation) {
 		current_rotation = (int)imu_get_heading(IMU_PORT);
 		speed = distance_between(rotation, current_rotation);
 
-		if (distance_between(rotation, current_rotation) < 10 || speed < 32)
-			speed = 32;
+		if (distance_between(rotation, current_rotation) < 10 || speed < 40)
+			speed = 45;
 	}
 	stop_all_motors();
 	printf("spin done!\r\n\r\n");
@@ -112,7 +112,7 @@ void initialize() {
 	motor_set_encoder_units(LEFT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
 	motor_set_encoder_units(RIGHT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
 
-	// red gears
+	// green gears
 	motor_set_gearing(LEFT_WHEEL, E_MOTOR_GEAR_GREEN);
 	motor_set_gearing(RIGHT_WHEEL, E_MOTOR_GEAR_GREEN);
 
