@@ -67,15 +67,18 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 		double current_rotation = (int)imu_get_heading(IMU_PORT);
 		int rot_distance = distance_between(current_rotation, target_rotation);
 		if (rot_distance > 1) {
-			if (time_taken % 100 == 0)
-				printf("rotation error: %d\r\n", rot_distance);
 
 			double direction = direction_to(current_rotation, target_rotation) * ((double)rot_distance / 180.0);
 
-			direction *= speed * 2;
+			direction *= speed;
 
 			wheel_power[0] += (int)direction;
 			wheel_power[1] -= (int)direction;
+
+			if (time_taken % 100 == 0) {
+				printf("rotation error: %d\r\n", rot_distance);
+				printf("compensating by going right %f\r\n", direction);
+			}
 		}
 
 		motor_move_velocity(LEFT_WHEEL, wheel_power[0]);
@@ -179,7 +182,7 @@ void play_auton_program(char* filename) {
 
 void autonomous() {
 	rotate_to(180);
-	travel_distance(15.0 * 12.0, 100, 180);
+	travel_distance(15.0 * 12.0, 40, 180);
 }
 
 /**
