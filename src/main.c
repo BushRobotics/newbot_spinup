@@ -111,6 +111,7 @@ void on_center_button() {}
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+	lv_fs_init();
 	printf("setting encoder units and directions\r\n");
 	motor_set_encoder_units(LEFT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
 	motor_set_encoder_units(RIGHT_WHEEL, E_MOTOR_ENCODER_ROTATIONS);
@@ -162,6 +163,7 @@ void play_auton_program(char* filename) {
 	Path path = load_path(filename);
 
 	for (int i = 0; i < path.length; i++) {
+		printf("angle: %d\ndistance: %f\r\n", path.steps[i].angle, path.steps[i].distance);
 		rotate_to(path.steps[i].angle);
 		travel_distance(path.steps[i].distance, path.steps[i].speed, path.steps[i].angle);
 		rotate_to(path.steps[i].post_angle);
@@ -181,8 +183,9 @@ void play_auton_program(char* filename) {
 }
 
 void autonomous() {
-	rotate_to(180);
-	travel_distance(15.0 * 12.0, 40, 180);
+	// rotate_to(180);
+	// travel_distance(15.0 * 12.0, 40, 180);
+	play_auton_program(AUTON_FILE);
 }
 
 /**

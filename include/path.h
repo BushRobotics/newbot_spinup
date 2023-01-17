@@ -26,10 +26,14 @@ typedef struct {
 } TempPathStep;
 
 Path load_path(char* filename) {
-	FILE* f = fopen(filename, "rb");
+	FILE* f = fopen(filename, "r");
 	int steps = 0;
 
+	printf("loading path from %s\r\n", filename);
+
 	TempPathStep* temp_path = malloc(sizeof(TempPathStep));
+
+	printf("allocated temp path\r\n");
 
 	int x_int; // in case the positions happen to be whole numbers.
 	int y_int;
@@ -37,6 +41,7 @@ Path load_path(char* filename) {
 	char buf[40];
 
 	while (fgets(buf, sizeof(buf), f) != NULL) {
+		printf("got to step %d\r\n", steps);
 		if (sscanf(buf, "%lf %lf %d %d %d", &(temp_path[steps].pos.x), &(temp_path[steps].pos.y), &(temp_path[steps].speed), &(temp_path[steps].action), &(temp_path[steps].post_angle)) == 5) {
 			temp_path[steps].has_post_angle = true;
 		}
@@ -56,6 +61,10 @@ Path load_path(char* filename) {
 		steps++;
 		temp_path = realloc(temp_path, sizeof(TempPathStep) * (steps + 2));
 	}
+
+	fclose(f);
+
+	printf("allocating real path\r\n");
 
 	Path path = {
 		malloc(sizeof(PathStep) * steps),
