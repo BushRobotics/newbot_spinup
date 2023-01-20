@@ -162,6 +162,8 @@ void competition_initialize() {}
 void play_auton_program(char* filename) {
 	Path path = load_path(filename);
 
+	if (path.length == 0) return;
+
 	for (int i = 0; i < path.length; i++) {
 		printf("angle: %d\ndistance: %f\r\n", path.steps[i].angle, path.steps[i].distance);
 		rotate_to(path.steps[i].angle);

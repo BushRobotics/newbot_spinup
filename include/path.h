@@ -25,29 +25,14 @@ typedef struct {
 	int post_angle;
 } TempPathStep;
 
-// fgets - Read a string from the specified stream
-char* better_fgets(char *str, int num, FILE *stream) {
-	printf("fgetsing lol\r\n");
-	// Required by standard
-	char *ptr = str;
-	int value;
-	if (feof(stream)) return NULL;
-
-	printf("not EOF\r\n");
-	// Read at most num-1 characters
-	for (; num > 1 && (value = fgetc(stream)) != EOF; num--) {
-		*ptr++ = (char)value;
-		// Exit loop (including new line) when a new line is found
-		if ((char)value == '\n') break;
-	}
-	printf("made it to the end. adding null terminator\r\n");
-	// Add null terminator
-	*ptr = '\0';
-	return str;
-}
 
 Path load_path(char* filename) {
 	FILE* f = fopen(filename, "r");
+	if (!f) {
+		printf("file not found\r\n");
+		return (Path){NULL, 0};
+	}
+
 	int steps = 0;
 
 	printf("loading path from %s\r\n", filename);
@@ -61,7 +46,7 @@ Path load_path(char* filename) {
 
 	char buf[40];
 
-	while (better_fgets(buf, sizeof(buf), f) != NULL) {
+	while (fgets(buf, sizeof(buf), f) != NULL) {
 		printf("got to step %d\r\n", steps);
 		if (sscanf(buf, "%lf %lf %d %d %d", &(temp_path[steps].pos.x), &(temp_path[steps].pos.y), &(temp_path[steps].speed), &(temp_path[steps].action), &(temp_path[steps].post_angle)) == 5) {
 			temp_path[steps].has_post_angle = true;
