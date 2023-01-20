@@ -39,15 +39,12 @@ Path load_path(char* filename) {
 
 	TempPathStep* temp_path = malloc(sizeof(TempPathStep));
 
-	printf("allocated temp path\r\n");
-
 	int x_int; // in case the positions happen to be whole numbers.
 	int y_int;
 
 	char buf[40];
 
 	while (fgets(buf, sizeof(buf), f) != NULL) {
-		printf("got to step %d\r\n", steps);
 		if (sscanf(buf, "%lf %lf %d %d %d", &(temp_path[steps].pos.x), &(temp_path[steps].pos.y), &(temp_path[steps].speed), &(temp_path[steps].action), &(temp_path[steps].post_angle)) == 5) {
 			temp_path[steps].has_post_angle = true;
 		}
@@ -69,8 +66,6 @@ Path load_path(char* filename) {
 	}
 
 	fclose(f);
-
-	printf("allocating real path\r\n");
 
 	Path path = {
 		malloc(sizeof(PathStep) * steps),

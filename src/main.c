@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "parameters.h"
 
-double inch_ratio = 39.0 / 3.05; // inches traveled / motor rotations
+double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 
 #define LEFT_WHEEL 1
 #define RIGHT_WHEEL 2
@@ -58,6 +58,7 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 	speed *= 60;
 	speed /= inch_ratio;
 
+
 	while (current_distance < distance) {
 
 		wheel_power[0] = speed;
@@ -92,6 +93,8 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 	}
 
 	stop_all_motors();
+
+	printf("actual distance traveled: %f\r\n", current_distance);
 
 	return time_taken;
 }
@@ -182,6 +185,7 @@ void play_auton_program(char* filename) {
 		}
 
 	}
+	stop_all_motors();
 }
 
 void autonomous() {
@@ -231,6 +235,7 @@ void opcontrol() {
 			// put peepee poopoo statements here
 			double avg_wheel_dist = (motor_get_position(LEFT_WHEEL) + motor_get_position(RIGHT_WHEEL)) / 2;
 			printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
+			printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
 
 			frames = 0;
 		}
