@@ -10,6 +10,7 @@ double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 
 #define RIGHT_SENSITIVITY 0.65
 #define IMU_PORT 3
+#define PUSHER_PORT 4
 
 void stop_all_motors() {
 	motor_move(LEFT_WHEEL, 0);
@@ -127,6 +128,9 @@ void initialize() {
 	motor_set_brake_mode(RIGHT_WHEEL, E_MOTOR_BRAKE_BRAKE);
 	motor_set_reversed(RIGHT_WHEEL, true);
 
+	motor_set_reversed(PUSHER_PORT, true);
+	motor_set_brake_mode(PUSHER_PORT, E_MOTOR_BRAKE_HOLD);
+
 	printf("calibrating inertial sensor...\r\n");
 	imu_reset_blocking(IMU_PORT);
 	printf("calibrated!\r\n");
@@ -239,6 +243,12 @@ void opcontrol() {
 
 			frames = 0;
 		}
+
+		// TODO: flesh out launcher controls
+		if (is_pressed(E_CONTROLLER_DIGITAL_A))
+			motor_move(PUSHER_PORT, 30);
+		else
+			motor_move(PUSHER_PORT, 0);
 
 		delay(2);
 		frames++;
