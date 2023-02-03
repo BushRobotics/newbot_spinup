@@ -5,12 +5,14 @@
 
 double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 
-#define LEFT_WHEEL 1
-#define RIGHT_WHEEL 2
+#define LEFT_WHEEL 8
+#define RIGHT_WHEEL 10
 
 #define RIGHT_SENSITIVITY 0.65
-#define IMU_PORT 3
-#define PUSHER_PORT 4
+#define IMU_PORT 21
+#define PUSHER_PORT 9
+
+#define LIFT_PORT 5
 
 void stop_all_motors() {
 	motor_move(LEFT_WHEEL, 0);
@@ -231,6 +233,14 @@ void opcontrol() {
 			wheel_power[1] -= right_stick.x * RIGHT_SENSITIVITY;
 			target_rotation = (int)imu_get_heading(IMU_PORT);
 		}
+
+		if (is_pressed(E_CONTROLLER_DIGITAL_R1))
+			motor_move(LIFT_PORT, 127);
+		else if (is_pressed(E_CONTROLLER_DIGITAL_R2))
+			motor_move(LIFT_PORT, -127);
+		else
+			motor_move(LIFT_PORT, 0);
+
 
 		motor_move(LEFT_WHEEL, wheel_power[0]);
 		motor_move(RIGHT_WHEEL, wheel_power[1]);
