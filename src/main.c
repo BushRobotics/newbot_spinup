@@ -15,6 +15,9 @@ double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 #define PUSHER_PORT 17
 
 #define LIFT_PORT 14
+#define ROLLER 19
+
+#define ROLLER_RATIO -20
 
 
 void stop_all_motors() {
@@ -107,6 +110,25 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 	return time_taken;
 }
 
+void shoot_disks() {
+	int time = 0;
+	while (time < 14000) {
+		motor_move(PUSHER_PORT, 30);
+		time += 2;
+		delay(2);
+	}
+	motor_move(PUSHER_PORT, 0);
+}
+
+void spin_roller() {
+	int time = 0;
+	while (time < 2500) {
+		motor_move(ROLLER, -1 * ROLLER_RATIO);
+		time += 2;
+		delay(2);
+	}
+}
+
 /**
  * A callback function for LLEMU's center button.
  *
@@ -143,6 +165,8 @@ void initialize() {
 
 	motor_set_brake_mode(FLYWHEEL_1, E_MOTOR_BRAKE_COAST);
 	motor_set_brake_mode(FLYWHEEL_2, E_MOTOR_BRAKE_COAST);
+
+	motor_set_brake_mode(ROLLER, E_MOTOR_BRAKE_BRAKE);
 
 	printf("calibrating inertial sensor...\r\n");
 	imu_reset_blocking(IMU_PORT);
@@ -196,10 +220,12 @@ void play_auton_program(char* filename) {
 			case 0:
 				break;
 			case 1:
-				// TODO: roller
+				// spin the roller
+				spin_roller();
 				break;
 			case 2:
-				// TODO: shoot disk
+				// shoot disks
+				shoot_disks();
 				break;
 		}
 
@@ -265,7 +291,14 @@ void opcontrol() {
 			frames = 0;
 		}
 
-		// TODO: flesh out launcher controls
+		int roller_speed = 0;
+		if (is_pressed(DIGITAL_R1))
+			roller_speed++;
+		else if (is_pressed(DIGITAL_R2))
+			roller_speed--;
+
+		motor_move_velocity(ROLLER, roller_speed * ROLLER_RATIO);
+
 		if (is_pressed(E_CONTROLLER_DIGITAL_A))
 			motor_move(PUSHER_PORT, 30);
 		else
