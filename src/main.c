@@ -2,17 +2,20 @@
 #include "path.h"
 #include "utils.h"
 #include "parameters.h"
+#include "flywheel.h"
 
 double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 
-#define LEFT_WHEEL 8
-#define RIGHT_WHEEL 10
+#define LEFT_WHEEL 12
+#define RIGHT_WHEEL 13
 
 #define RIGHT_SENSITIVITY 0.65
-#define IMU_PORT 21
-#define PUSHER_PORT 9
 
-#define LIFT_PORT 5
+#define IMU_PORT 11
+#define PUSHER_PORT 17
+
+#define LIFT_PORT 14
+
 
 void stop_all_motors() {
 	motor_move(LEFT_WHEEL, 0);
@@ -130,8 +133,11 @@ void initialize() {
 	motor_set_brake_mode(RIGHT_WHEEL, E_MOTOR_BRAKE_BRAKE);
 	motor_set_reversed(RIGHT_WHEEL, true);
 
-	motor_set_reversed(PUSHER_PORT, true);
 	motor_set_brake_mode(PUSHER_PORT, E_MOTOR_BRAKE_HOLD);
+
+	motor_set_gearing(FLYWHEEL_1, E_MOTOR_GEAR_BLUE);
+	motor_set_gearing(FLYWHEEL_2, E_MOTOR_GEAR_BLUE);
+	motor_set_reversed(FLYWHEEL_2, true);
 
 	printf("calibrating inertial sensor...\r\n");
 	imu_reset_blocking(IMU_PORT);
@@ -200,6 +206,7 @@ void autonomous() {
 	play_auton_program(AUTON_FILE);
 }
 
+
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -220,6 +227,8 @@ void opcontrol() {
 	int wheel_power[2];
 
 	int target_rotation = (int)imu_get_heading(IMU_PORT);
+
+	start_flywheel();
 
 	while (true) {
 		left_stick = (Vector2){controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_X), controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_Y)};
@@ -250,6 +259,7 @@ void opcontrol() {
 			double avg_wheel_dist = (motor_get_position(LEFT_WHEEL) + motor_get_position(RIGHT_WHEEL)) / 2;
 			printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
 			printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
+			start_flywheel();
 
 			frames = 0;
 		}
