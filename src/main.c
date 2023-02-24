@@ -40,7 +40,7 @@ int rotate_to(int rotation) {
 
 		motor_move_velocity(LEFT_WHEEL, speed * direction);
 		motor_move_velocity(RIGHT_WHEEL, -speed * direction);
-		update_flywheel(2);
+		update_flywheel(2, false);
 		delay(2);
 		time_taken += 2;
 		current_rotation = (int)imu_get_heading(IMU_PORT);
@@ -99,7 +99,7 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 		current_distance *= inch_ratio; // convert from rotations to inches
 
 		time_taken += 2;
-		update_flywheel(2);
+		update_flywheel(2, false);
 		delay(2);
 	}
 
@@ -115,6 +115,7 @@ void shoot_disks() {
 	while (time < 14000) {
 		motor_move(PUSHER_PORT, 30);
 		time += 2;
+		update_flywheel(2, true);
 		delay(2);
 	}
 	motor_move(PUSHER_PORT, 0);
@@ -123,6 +124,7 @@ void shoot_disks() {
 void spin_roller() {
 	int time = 0;
 	while (time < 2500) {
+		update_flywheel(2, false);
 		motor_move(ROLLER, -1 * ROLLER_RATIO);
 		time += 2;
 		delay(2);
@@ -158,6 +160,7 @@ void initialize() {
 	motor_set_reversed(RIGHT_WHEEL, true);
 
 	motor_set_brake_mode(PUSHER_PORT, E_MOTOR_BRAKE_HOLD);
+	motor_set_encoder_units(PUSHER_PORT, E_MOTOR_ENCODER_DEGREES);
 
 	motor_set_gearing(FLYWHEEL_1, E_MOTOR_GEAR_BLUE);
 	motor_set_gearing(FLYWHEEL_2, E_MOTOR_GEAR_BLUE);
@@ -286,8 +289,8 @@ void opcontrol() {
 		if (frames == 250) {
 			// put peepee poopoo statements here
 			double avg_wheel_dist = (motor_get_position(LEFT_WHEEL) + motor_get_position(RIGHT_WHEEL)) / 2;
-			printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
-			printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
+			// printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
+			// printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
 			frames = 0;
 		}
 
@@ -299,12 +302,17 @@ void opcontrol() {
 
 		motor_move_velocity(ROLLER, roller_speed * ROLLER_RATIO);
 
-		if (is_pressed(E_CONTROLLER_DIGITAL_A))
-			motor_move(PUSHER_PORT, 30);
-		else
-			motor_move(PUSHER_PORT, 0);
+		if (is_pressed(E_CONTROLLER_DIGITAL_A)) {
+			update_flywheel(2, true);
+			motor_move(PUSHER_PORT, 35);
+		}
+		else {
+			update_flywheel(2, false);
+			if (clamp360(motor_get_position(PUSHER_PORT)) < 180) {
+				motor_move(PUSHER_PORT, 0);
+			}
+		}
 
-		update_flywheel(2);
 		delay(2);
 		frames++;
 	}
