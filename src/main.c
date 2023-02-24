@@ -141,6 +141,9 @@ void initialize() {
 	motor_set_gearing(FLYWHEEL_2, E_MOTOR_GEAR_BLUE);
 	motor_set_reversed(FLYWHEEL_2, true);
 
+	motor_set_brake_mode(FLYWHEEL_1, E_MOTOR_BRAKE_COAST);
+	motor_set_brake_mode(FLYWHEEL_2, E_MOTOR_BRAKE_COAST);
+
 	printf("calibrating inertial sensor...\r\n");
 	imu_reset_blocking(IMU_PORT);
 	printf("calibrated!\r\n");

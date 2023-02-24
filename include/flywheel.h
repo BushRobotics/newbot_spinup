@@ -44,11 +44,13 @@ void update_flywheel(int delta) {
 	if (flywheel_time % 2000 > 200) return;
 
 	if (flywheel_state == M2) {
+		flywheel_state = M1;
 		motor_move_velocity(FLYWHEEL_2, 0);
 		motor_move_velocity(FLYWHEEL_1, FLYWHEEL_SPEED);
 		return
 	}
 
+	flywheel_state = M2;
 	motor_move_velocity(FLYWHEEL_2, FLYWHEEL_SPEED);
 	motor_move_velocity(FLYWHEEL_1, 0);
 }
