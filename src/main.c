@@ -37,6 +37,7 @@ int rotate_to(int rotation) {
 
 		motor_move_velocity(LEFT_WHEEL, speed * direction);
 		motor_move_velocity(RIGHT_WHEEL, -speed * direction);
+		update_flywheel(2);
 		delay(2);
 		time_taken += 2;
 		current_rotation = (int)imu_get_heading(IMU_PORT);
@@ -95,6 +96,7 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 		current_distance *= inch_ratio; // convert from rotations to inches
 
 		time_taken += 2;
+		update_flywheel(2);
 		delay(2);
 	}
 
@@ -178,6 +180,8 @@ void play_auton_program(char* filename) {
 	Path path = load_path(filename);
 
 	if (path.length == 0) return;
+	motor_move(LIFT_PORT, 127);
+	start_flywheel();
 
 	for (int i = 0; i < path.length; i++) {
 		printf("angle: %d\ndistance: %f\r\n", path.steps[i].angle, path.steps[i].distance);
@@ -198,6 +202,8 @@ void play_auton_program(char* filename) {
 
 	}
 	stop_all_motors();
+	stop_flywheel();
+	motor_move(LIFT_PORT, 0);
 }
 
 void autonomous() {
@@ -229,6 +235,7 @@ void opcontrol() {
 	int target_rotation = (int)imu_get_heading(IMU_PORT);
 
 	start_flywheel();
+	motor_move(LIFT_PORT, 127);
 
 	while (true) {
 		left_stick = (Vector2){controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_X), controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_Y)};
@@ -243,13 +250,6 @@ void opcontrol() {
 			target_rotation = (int)imu_get_heading(IMU_PORT);
 		}
 
-		if (is_pressed(E_CONTROLLER_DIGITAL_R1))
-			motor_move(LIFT_PORT, 127);
-		else if (is_pressed(E_CONTROLLER_DIGITAL_R2))
-			motor_move(LIFT_PORT, -127);
-		else
-			motor_move(LIFT_PORT, 0);
-
 
 		motor_move(LEFT_WHEEL, wheel_power[0]);
 		motor_move(RIGHT_WHEEL, wheel_power[1]);
@@ -259,8 +259,6 @@ void opcontrol() {
 			double avg_wheel_dist = (motor_get_position(LEFT_WHEEL) + motor_get_position(RIGHT_WHEEL)) / 2;
 			printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
 			printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
-			start_flywheel();
-
 			frames = 0;
 		}
 
@@ -270,6 +268,7 @@ void opcontrol() {
 		else
 			motor_move(PUSHER_PORT, 0);
 
+		update_flywheel(2);
 		delay(2);
 		frames++;
 	}
