@@ -39,7 +39,7 @@ void update_flywheel(int delta, bool shooting) {
 	flywheel_time += delta;
 
 	if (flywheel_state == STARTING) {
-		if (flywheel_time >= 4000) {
+		if (flywheel_time >= 1000) {
 			printf("switching to motor two\r\n");
 			flywheel_state = M2;
 			motor_brake(FLYWHEEL_1);

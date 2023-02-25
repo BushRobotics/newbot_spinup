@@ -14,8 +14,8 @@ double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 #define IMU_PORT 11
 #define PUSHER_PORT 17
 
-#define LIFT_PORT 14
-#define ROLLER 19
+#define LIFT_PORT 10
+#define ROLLER 4
 
 #define ROLLER_RATIO -20
 
@@ -112,8 +112,10 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 
 void shoot_disks() {
 	int time = 0;
-	while (time < 14000) {
-		motor_move(PUSHER_PORT, 30);
+	while (time < 3000) {
+		if (time > 400)
+			motor_move(PUSHER_PORT, 40);
+
 		time += 2;
 		update_flywheel(2, true);
 		delay(2);
@@ -123,12 +125,13 @@ void shoot_disks() {
 
 void spin_roller() {
 	int time = 0;
-	while (time < 2500) {
+	while (time < 1200) {
 		update_flywheel(2, false);
 		motor_move(ROLLER, -1 * ROLLER_RATIO);
 		time += 2;
 		delay(2);
 	}
+	motor_brake(ROLLER);
 }
 
 /**
@@ -169,7 +172,11 @@ void initialize() {
 	motor_set_brake_mode(FLYWHEEL_1, E_MOTOR_BRAKE_COAST);
 	motor_set_brake_mode(FLYWHEEL_2, E_MOTOR_BRAKE_COAST);
 
+	motor_set_brake_mode(LEFT_WHEEL, E_MOTOR_BRAKE_COAST);
+	motor_set_brake_mode(RIGHT_WHEEL, E_MOTOR_BRAKE_COAST);
+
 	motor_set_brake_mode(ROLLER, E_MOTOR_BRAKE_BRAKE);
+	motor_set_reversed(ROLLER, true);
 
 	printf("calibrating inertial sensor...\r\n");
 	imu_reset_blocking(IMU_PORT);
@@ -268,6 +275,10 @@ void opcontrol() {
 
 	start_flywheel();
 	motor_move(LIFT_PORT, 127);
+	int shoot_time = 0;
+
+	motor_set_brake_mode(LEFT_WHEEL, E_MOTOR_BRAKE_BRAKE);
+	motor_set_brake_mode(RIGHT_WHEEL, E_MOTOR_BRAKE_BRAKE);
 
 	while (true) {
 		left_stick = (Vector2){controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_X), controller_get_analog(E_CONTROLLER_MASTER, E_CONTROLLER_ANALOG_LEFT_Y)};
@@ -304,10 +315,13 @@ void opcontrol() {
 
 		if (is_pressed(E_CONTROLLER_DIGITAL_A)) {
 			update_flywheel(2, true);
-			motor_move(PUSHER_PORT, 35);
+			shoot_time += 2;
+			if (shoot_time > 500)
+				motor_move(PUSHER_PORT, 40);
 		}
 		else {
 			update_flywheel(2, false);
+			shoot_time = 0;
 			if (clamp360(motor_get_position(PUSHER_PORT)) < 180) {
 				motor_move(PUSHER_PORT, 0);
 			}
