@@ -6,7 +6,7 @@
 #define FLYWHEEL_1 15
 #define FLYWHEEL_2 16
 
-#define FLYWHEEL_SPEED 400
+#define FLYWHEEL_SPEED 500
 
 enum FlywheelState {
 	STOPPED,

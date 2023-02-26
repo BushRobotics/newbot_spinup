@@ -6,6 +6,8 @@
 
 double inch_ratio = 39.0 / 2.93866; // inches traveled / motor rotations
 
+#define LIFT_SPEED 127
+
 #define LEFT_WHEEL 12
 #define RIGHT_WHEEL 13
 
@@ -112,8 +114,8 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 
 void shoot_disks() {
 	int time = 0;
-	while (time < 3000) {
-		if (time > 400)
+	while (time < 5000) {
+		if (time > 800)
 			motor_move(PUSHER_PORT, 40);
 
 		time += 2;
@@ -217,7 +219,7 @@ void play_auton_program(char* filename) {
 	Path path = load_path(filename);
 
 	if (path.length == 0) return;
-	motor_move(LIFT_PORT, 127);
+	motor_move(LIFT_PORT, LIFT_SPEED);
 	start_flywheel();
 
 	for (int i = 0; i < path.length; i++) {
@@ -240,6 +242,7 @@ void play_auton_program(char* filename) {
 		}
 
 	}
+	delay(2);
 	stop_all_motors();
 	stop_flywheel();
 	motor_move(LIFT_PORT, 0);
@@ -274,7 +277,7 @@ void opcontrol() {
 	int target_rotation = (int)imu_get_heading(IMU_PORT);
 
 	start_flywheel();
-	motor_move(LIFT_PORT, 127);
+	motor_move(LIFT_PORT, LIFT_SPEED);
 	int shoot_time = 0;
 
 	motor_set_brake_mode(LEFT_WHEEL, E_MOTOR_BRAKE_BRAKE);
@@ -303,6 +306,11 @@ void opcontrol() {
 			// printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
 			// printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
 			frames = 0;
+			
+			if (motor_get_target_velocity(LIFT_PORT) != 0 && is_pressed(E_CONTROLLER_DIGITAL_X))
+				motor_brake(LIFT_PORT);
+			else if (is_pressed(E_CONTROLLER_DIGITAL_X))
+				motor_move(LIFT_PORT, LIFT_SPEED);
 		}
 
 		int roller_speed = 0;
@@ -316,7 +324,7 @@ void opcontrol() {
 		if (is_pressed(E_CONTROLLER_DIGITAL_A)) {
 			update_flywheel(2, true);
 			shoot_time += 2;
-			if (shoot_time > 500)
+			if (shoot_time > 800)
 				motor_move(PUSHER_PORT, 40);
 		}
 		else {
