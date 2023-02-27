@@ -56,7 +56,7 @@ int rotate_to(int rotation) {
 	return time_taken;
 }
 
-int travel_distance(double distance, int32_t speed, int target_rotation) {
+int travel_distance(double distance, int direction, int32_t speed, int target_rotation) {
 	int time_taken = 0;
 
 	double left_start = motor_get_position(LEFT_WHEEL);
@@ -71,26 +71,26 @@ int travel_distance(double distance, int32_t speed, int target_rotation) {
 	speed /= inch_ratio;
 
 
-	while (current_distance < distance) {
+	while (direction > 0 ? current_distance < distance : current_distance > distance) {
 
-		wheel_power[0] = speed;
-		wheel_power[1] = speed;
+		wheel_power[0] = speed * direction;
+		wheel_power[1] = speed * direction;
 
 		// really smart rotation correction (I hope)
 		double current_rotation = (int)imu_get_heading(IMU_PORT);
 		int rot_distance = distance_between(current_rotation, target_rotation);
 		if (rot_distance > 1) {
 
-			double direction = direction_to(current_rotation, target_rotation) * ((double)rot_distance / 180.0);
+			double angle_direction = direction_to(current_rotation, target_rotation) * ((double)rot_distance / 180.0);
 
-			direction *= speed;
+			angle_direction *= speed;
 
-			wheel_power[0] += (int)direction;
-			wheel_power[1] -= (int)direction;
+			wheel_power[0] += (int)angle_direction;
+			wheel_power[1] -= (int)angle_direction;
 
 			if (time_taken % 100 == 0) {
 				printf("rotation error: %d\r\n", rot_distance);
-				printf("compensating by going right %f\r\n", direction);
+				printf("compensating by going right %f\r\n", angle_direction);
 			}
 		}
 
@@ -225,7 +225,7 @@ void play_auton_program(char* filename) {
 	for (int i = 0; i < path.length; i++) {
 		printf("angle: %d\ndistance: %f\r\n", path.steps[i].angle, path.steps[i].distance);
 		rotate_to(path.steps[i].angle);
-		travel_distance(path.steps[i].distance, path.steps[i].speed, path.steps[i].angle);
+		travel_distance(path.steps[i].distance, path.steps[i].direction, path.steps[i].speed, path.steps[i].angle);
 		rotate_to(path.steps[i].post_angle);
 
 		switch (path.steps[i].action) {
@@ -306,7 +306,7 @@ void opcontrol() {
 			// printf("distance traveled in rotations: %f\r\n", avg_wheel_dist);
 			// printf("distance traveled in inches: %f\r\n", avg_wheel_dist * inch_ratio);
 			frames = 0;
-			
+
 			if (motor_get_target_velocity(LIFT_PORT) != 0 && is_pressed(E_CONTROLLER_DIGITAL_X))
 				motor_brake(LIFT_PORT);
 			else if (is_pressed(E_CONTROLLER_DIGITAL_X))

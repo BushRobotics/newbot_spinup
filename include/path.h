@@ -5,6 +5,7 @@
 
 typedef struct {
 	int angle; // angle to rotate to before move
+	int direction; // move forward or backward. 1 for forward, -1 for backward
 	double distance; // distance to travel in inches
 	int speed; // speed to travel in inches per second
 	int post_angle; // angle to rotate to after move
@@ -75,6 +76,7 @@ Path load_path(char* filename) {
 	for (int i = 0; i < steps; i++) {
 		path.steps[i].angle = 0;
 		path.steps[i].distance = 0;
+		path.steps[i].direction = 1;
 
 		if (i != 0) {
 			path.steps[i].angle = path.steps[i - 1].angle;
@@ -89,6 +91,14 @@ Path load_path(char* filename) {
 				path.steps[i].angle += 180;
 			}
 			path.steps[i].angle = clamp360(path.steps[i].angle);
+		}
+
+		int prev_angle = i != 0 ? path.steps[i - 1].post_angle : 0;
+
+		// drive backwards if it's more efficient
+		if (distance_between(prev_angle, path.steps[i].angle) > distance_between(prev_angle, path.steps[i].angle + 180)) {
+			path.steps[i].direction = -1;
+			clamp360(path.steps[i].angle + 180);
 		}
 
 		path.steps[i].action = temp_path[i].action;
