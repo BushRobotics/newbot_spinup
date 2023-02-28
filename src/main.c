@@ -71,7 +71,7 @@ int travel_distance(double distance, int direction, int32_t speed, int target_ro
 	speed /= inch_ratio;
 
 
-	while (direction > 0 ? current_distance < distance : current_distance > distance) {
+	while (direction > 0 ? current_distance < distance : current_distance > -distance) {
 
 		wheel_power[0] = speed * direction;
 		wheel_power[1] = speed * direction;
@@ -219,8 +219,8 @@ void play_auton_program(char* filename) {
 	Path path = load_path(filename);
 
 	if (path.length == 0) return;
-	motor_move(LIFT_PORT, LIFT_SPEED);
-	start_flywheel();
+	// motor_move(LIFT_PORT, LIFT_SPEED);
+	// start_flywheel();
 
 	for (int i = 0; i < path.length; i++) {
 		printf("angle: %d\ndistance: %f\r\n", path.steps[i].angle, path.steps[i].distance);
@@ -233,11 +233,11 @@ void play_auton_program(char* filename) {
 				break;
 			case 1:
 				// spin the roller
-				spin_roller();
+				// spin_roller();
 				break;
 			case 2:
 				// shoot disks
-				shoot_disks();
+				// shoot_disks();
 				break;
 		}
 
@@ -276,8 +276,8 @@ void opcontrol() {
 
 	int target_rotation = (int)imu_get_heading(IMU_PORT);
 
-	start_flywheel();
-	motor_move(LIFT_PORT, LIFT_SPEED);
+	// start_flywheel();
+	// motor_move(LIFT_PORT, LIFT_SPEED);
 	int shoot_time = 0;
 
 	motor_set_brake_mode(LEFT_WHEEL, E_MOTOR_BRAKE_BRAKE);

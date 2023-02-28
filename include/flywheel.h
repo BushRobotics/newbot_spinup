@@ -36,6 +36,7 @@ void stop_flywheel() {
 }
 
 void update_flywheel(int delta, bool shooting) {
+	if (flywheel_time == STOPPED) return;
 	flywheel_time += delta;
 
 	if (flywheel_state == STARTING) {

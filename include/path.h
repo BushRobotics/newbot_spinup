@@ -98,7 +98,7 @@ Path load_path(char* filename) {
 		// drive backwards if it's more efficient
 		if (distance_between(prev_angle, path.steps[i].angle) > distance_between(prev_angle, path.steps[i].angle + 180)) {
 			path.steps[i].direction = -1;
-			clamp360(path.steps[i].angle + 180);
+			path.steps[i].angle = clamp360(path.steps[i].angle + 180);
 		}
 
 		path.steps[i].action = temp_path[i].action;
